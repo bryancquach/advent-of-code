@@ -1,4 +1,4 @@
-ARG base_image=public.ecr.aws/docker/library/python:3.13.0a1-slim
+ARG base_image=public.ecr.aws/docker/library/python:3.12-slim
 FROM ${base_image}
 
 # Debian packages and tools

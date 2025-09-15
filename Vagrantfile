@@ -25,7 +25,9 @@ Vagrant.configure("2") do |config|
         "--platform",
         "linux/amd64,linux/arm64",
         "--cache-from",
-        "type=registry,ref=bryancquach/advent_of_code_2024:latest"
+        "type=registry,ref=bryancquach/advent_of_code_2024:latest",
+        "--tag",
+        "bryancquach/advent_of_code_2024:latest"
       ]
     end
   end
