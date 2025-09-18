@@ -9,11 +9,16 @@ readme = "README.md"
 requires-python = ">=3.12"
 url = "https://github.com/bryancquach/advent-of-code"
 dependencies = [
-    "pandas (>=2.3.2,<3.0.0)"
+    "pandas (>=2.3.2,<3.0.0)",
+    "typer (>=0.17.4,<0.18.0)"
 ]
 
+[project.scripts]
+advent-of-code = "advent_of_code.main:app"
+
 [tool.poetry]
-packages = [{include = "advent_of_code", from = "src"}]
+#package-mode = false
+packages = [{include="advent_of_code", from="src"}]
 
 [tool.autoflake]
 check = true
