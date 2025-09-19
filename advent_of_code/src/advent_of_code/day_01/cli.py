@@ -1,4 +1,4 @@
-from .distance_metrics import get_manhattan_dist
+from .metrics import get_manhattan_dist, get_similarity_score
 import pandas
 import typer
 from typing_extensions import Annotated
@@ -46,3 +46,17 @@ def run_part1(
         series2.sort_values(inplace=True, ignore_index=True)
     distance = get_manhattan_dist(series1, series2)
     print(f"Manhattan distance: {distance}")
+
+
+@app.command()
+def run_part2(
+    data_file: Annotated[
+        str, typer.Argument(..., help="Path to a TSV file for a two-column integer matrix.")
+    ],
+):
+    """Calculate similarity score between two integer series from a TSV file."""
+    dataset = load_data(data_file)
+    series1 = dataset.iloc[:, 0].copy(deep=True)
+    series2 = dataset.iloc[:, 1].copy(deep=True)
+    score = get_similarity_score(series1, series2)
+    print(f"Similarity score: {score}")

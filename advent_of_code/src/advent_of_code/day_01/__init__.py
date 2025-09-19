@@ -1,3 +1,3 @@
-from .distance_metrics import get_manhattan_dist
+from .metrics import get_manhattan_dist, get_similarity_score
 
-__all__ = ["get_manhattan_dist"]
+__all__ = ["get_manhattan_dist", "get_similarity_score"]
