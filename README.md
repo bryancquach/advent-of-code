@@ -48,3 +48,58 @@ advent-of-code
 └── docker                             <--- IaC for dev environment
     └── Dockerfile
 ```
+
+# User guide
+
+## Environment setup
+
+Creating a Vagrant VM to use the CLI requires having [Vagrant](https://developer.hashicorp.com/vagrant/install), [Docker Engine](https://docs.docker.com/engine/install/), and [Git](https://git-scm.com/book/en/v2/Getting-Started-Installing-Git) (with SSH-based cloning from GitHub configured) installed. Once those are installed, run the following command-line commands:
+
+```bash
+# Set up Vagrant VM called 'dev'
+git clone git@github.com:bryancquach/advent-of-code.git
+cd advent-of-code
+vagrant up
+
+# Check VM status
+vagrant status
+
+# Start shell session in VM
+vagrant ssh dev
+```
+
+The above code snippet should install and spin up a Vagrant VM called `dev` that you can communicate with via SSH. This can be verified by checking that the command `vagrant status` outputs `dev` as a running VM. If setup is successful, you can start a shell session within the VM using `vagrant ssh dev`.
+
+Within the VM, dependencies for the `advent-of-code` package need to installed:
+
+```bash
+cd /vagrant/advent_of_code/
+poetry install
+```
+
+Once this completes, your environment setup is complete!
+
+## Running a daily challenge solution
+
+Daily challenge solutions can be run with the main CLI from within the Vagrant VM through a Poetry-managed virtual environment:
+
+```
+cd /vagrant/advent_of_code/
+
+# Main CLI usage doc
+poetry run advent-of-code --help
+
+# Day 1 CLI usage doc
+poetry run advent-of-code day-1 --help
+
+# Usage docs for Day 1 CLI commands
+poetry run advent-of-code day-1 run-part1 --help
+poetry run advent-of-code day-1 run-part2 --help
+
+# Example runs
+poetry run advent-of-code day-1 run-part1 \
+  src/advent_of_code/data/day_01/input.tsv
+
+poetry run advent-of-code day-1 run-part2 \
+  src/advent_of_code/data/day_01/input.tsv 
+```
