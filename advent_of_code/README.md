@@ -31,7 +31,7 @@
 │           ├── __init__.py
 │           └── day_01
 │               ├── __init__.py
-│               └── test_distance_metrics.py
+│               └── test_metrics.py
 └── docker
     └── Dockerfile
 ```
