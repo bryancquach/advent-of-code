@@ -1,0 +1,37 @@
+[project]
+name = "advent_of_code"
+version = "0.0.1"
+description = "Solutions to Advent of Code 2024 Daily Challenges"
+authors = [
+    {name = "bryancquach", email = "bryancquach@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+url = "https://github.com/bryancquach/advent-of-code"
+dependencies = [
+    "pandas (>=2.3.2,<3.0.0)",
+    "typer (>=0.17.4,<0.18.0)"
+]
+
+[project.scripts]
+advent-of-code = "advent_of_code.main:app"
+
+[tool.poetry]
+#package-mode = false
+packages = [{include="advent_of_code", from="src"}]
+
+[tool.autoflake]
+check = true
+imports = []
+
+[tool.black]
+line-length = 100
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+
+[dependency-groups]
+dev = [
+    "pytest (>=8.4.2,<9.0.0)"
+]
