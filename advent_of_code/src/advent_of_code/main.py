@@ -5,14 +5,5 @@ app = typer.Typer(name="advent-of-code", help="Advent of Code Solutions CLI")
 
 app.add_typer(day01_app, name="day-1", help="Run Day 1 solutions.")
 
-@app.callback()
-def callback():
-    """
-    Advent of Code Solutions CLI
-    
-    Run solutions for different days using subcommands
-    """
-    pass
-
 if __name__ == "__main__":
-  app()
+    app()
