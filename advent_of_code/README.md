@@ -24,7 +24,7 @@
 │   │       └── day_01
 │   │           ├── __init__.py
 │   │           ├── cli.py
-│   │           └── distance_metrics.py
+│   │           └── metrics.py
 │   └── tests
 │       ├── __init__.py
 │       └── unit
