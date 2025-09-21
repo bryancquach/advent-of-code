@@ -1,7 +1,8 @@
+from advent_of_code.day_02.utils import load_data, get_diff
 import pandas
 import pathlib
 import pytest
-from advent_of_code.day_02.utils import load_data, get_diff
+import typer
 
 SCRIPT_DIR = pathlib.Path(__file__).parent.resolve()
 
@@ -29,19 +30,19 @@ def example_data():
 def test_load_data(file_paths):
     # Test loading valid data
     df = load_data(file_paths[0])
-    assert isinstance(df, pandas.DataFrame)
-    assert not df.empty
+    assert isinstance(df, list)
+    assert len(df) != 0
 
     # Test loading empty file
-    with pytest.raises(pandas.errors.EmptyDataError):
+    with pytest.raises(typer.Exit):
         load_data(file_paths[1])
 
     # Test loading invalid data
-    with pytest.raises(ValueError):
+    with pytest.raises(typer.Exit):
         load_data(file_paths[2])
 
     # Test loading file with missing values
-    with pytest.raises(ValueError):
+    with pytest.raises(typer.Exit):
         load_data(file_paths[3])
 
     # Test loading non-existent file

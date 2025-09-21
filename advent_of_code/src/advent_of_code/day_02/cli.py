@@ -15,8 +15,11 @@ def run_part1(
     """Check if reports are monotonic and within change thresholds."""
     dataset = load_data(data_file)
     safe_count = 0
-    for _, row_series in dataset.iterrows():
+    for row_series in dataset:
         is_monotonic = row_series.is_monotonic_increasing or row_series.is_monotonic_decreasing
+        if row_series.size <= 1:
+            raise Warning("Skipping row. Report has less than 2 levels.")
+            continue
         if not is_monotonic:
             continue
         change_rate = get_diff(row_series, absolute=True)
