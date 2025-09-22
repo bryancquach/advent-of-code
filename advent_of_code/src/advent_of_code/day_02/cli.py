@@ -1,4 +1,4 @@
-from .utils import get_diff, load_data
+from .utils import get_diff, load_data, get_monotonicity_violation_count, get_change_violation_count
 import pandas
 import typer
 from typing_extensions import Annotated
@@ -16,20 +16,14 @@ def run_part1(
     dataset = load_data(data_file)
     safe_count = 0
     for row_series in dataset:
-        is_monotonic = row_series.is_monotonic_increasing or row_series.is_monotonic_decreasing
         if row_series.size <= 1:
             raise Warning("Skipping row. Report has less than 2 levels.")
             continue
-        if not is_monotonic:
-            continue
-        change_rate = get_diff(row_series, absolute=True)
-        max_change = change_rate.max()
-        min_change = change_rate.min()
-        is_within_threshold = min_change >= 1 and max_change <= 3
-        if not is_within_threshold:
-            continue
-        # Only increment if both conditions are met
-        safe_count += 1
+        diffs = get_diff(row_series, absolute=False)
+        abs_diffs = get_diff(row_series, absolute=True)
+        num_violations = get_monotonicity_violation_count(diffs) + get_change_violation_count(abs_diffs, min_change=1, max_change=3)
+        if num_violations == 0:
+            safe_count += 1
     print(f"Number of safe reports: {safe_count}")
 
 
