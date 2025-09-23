@@ -16,7 +16,7 @@ app = typer.Typer(help="Day 2: Red-Nosed Reports")
 @app.command()
 def run_part1(
     data_file: Annotated[
-        str, typer.Argument(..., help="Path to a TSV file for a two-column integer matrix.")
+        str, typer.Argument(..., help="Path to a TSV file with rows of integers.")
     ],
 ):
     """Check if reports are monotonic and within change thresholds.
@@ -39,7 +39,7 @@ def run_part1(
 @app.command()
 def run_part2(
     data_file: Annotated[
-        str, typer.Argument(..., help="Path to a TSV file for a two-column integer matrix.")
+        str, typer.Argument(..., help="Path to a TSV file with rows of integers.")
     ],
 ):
     """Check if reports are monotonic and within change thresholds assuming a 1 element tolerance.

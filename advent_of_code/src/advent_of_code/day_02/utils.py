@@ -31,7 +31,7 @@ def load_data(file_path: str) -> list[pandas.core.series.Series]:
                     print(f"Error: Non-integer value found in line: {line}")
                     raise typer.Exit(code=1)
             else:
-                raise Warning("Skipping empty line.")
+                print("Warning: Skipping empty line.")
     return data
 
 
