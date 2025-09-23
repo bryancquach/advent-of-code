@@ -78,7 +78,7 @@ def get_monotonicity_violation_count(series: pandas.Series) -> int:
         int: Number of elements that violate monotonicity.
     """
     series_diff = get_diff(series, absolute=False)
-    if len(series_diff) == 0:
+    if series_diff.empty:
         return 0
 
     # Find first non-zero element to establish direction
