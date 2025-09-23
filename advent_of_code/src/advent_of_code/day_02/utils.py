@@ -109,7 +109,7 @@ def get_change_violation_count(
         raise ValueError("Invalid change thresholds provided.")
     violations = 0
     series_diff = get_diff(series, absolute=True)
-    if len(series_diff) == 0:
+    if series_diff.empty:
         return violations
     violations += (series_diff < min_change).sum()
     violations += (series_diff > max_change).sum()
