@@ -17,21 +17,20 @@ def load_data(file_path: str) -> list[pandas.core.series.Series]:
         print("Error: A valid file path must be provided.")
         raise typer.Exit(code=1)
     with open(file_path, "r") as fh:
-        if fh.read().strip() == "":
-            print("Error: The provided file is empty.")
-            raise typer.Exit(code=1)
-    with open(file_path, "r") as fh:
-        for line in fh:
-            line = line.strip()
-            if line:
-                try:
-                    series = pandas.Series([int(x) for x in line.split("\t")])
-                    data.append(series)
-                except ValueError:
-                    print(f"Error: Non-integer value found in line: {line}")
-                    raise typer.Exit(code=1)
-            else:
-                print("Warning: Skipping empty line.")
+        lines = [line.strip() for line in fh]
+    if not any(lines):
+        print("Error: The provided file is empty.")
+        raise typer.Exit(code=1)
+    for line in lines:
+        if line:
+            try:
+                series = pandas.Series([int(x) for x in line.split("\t")])
+                data.append(series)
+            except ValueError:
+                print(f"Error: Non-integer value found in line: {line}")
+                raise typer.Exit(code=1)
+        else:
+            print("Warning: Skipping empty line.")
     return data
 
 
