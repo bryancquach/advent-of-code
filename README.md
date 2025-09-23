@@ -6,6 +6,7 @@ This repository contains solutions to [Advent of Code 2024](https://adventofcode
 * Uses [Typer](https://typer.tiangolo.com/) as the command-line interface (CLI) framework. Each daily challenge is developed as its own CLI micro-application that is integrated into a main CLI app
 * Core functionality of each daily challenge tested using a [pytest](https://docs.pytest.org/en/stable/) unit-testing framework
 * Python code formatted using [Black](https://github.com/psf/black) for [PEP 8](https://peps.python.org/pep-0008/) compliant style consistency
+* GitHub Copilot is used as a reviewer for merge requests into the main branch
 
 # Repository structure
 
