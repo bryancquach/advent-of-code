@@ -21,9 +21,8 @@ Vagrant.configure("2") do |config|
       image_name = "bryancquach/advent_of_code_2024:latest"
       
       # Check if the image exists locally or can be pulled
-      image_exists = system("docker image inspect #{image_name} > /dev/null 2>&1") || 
-                     system("docker pull #{image_name} > /dev/null 2>&1")
-      
+      image_exists = system("docker", "image", "inspect", image_name, out: File::NULL, err: File::NULL) ||
+                     system("docker", "pull", image_name, out: File::NULL, err: File::NULL)
       if image_exists
         puts "Using existing image: #{image_name}"
         d.image = image_name
@@ -34,7 +33,7 @@ Vagrant.configure("2") do |config|
         d.build_args = [
           "--no-cache",
           "--tag",
-          "#{image_name}"
+          image_name}
         ]
       end
       d.cmd = ["/usr/sbin/sshd", "-D", "-o", "ListenAddress=0.0.0.0"] # spin up SSH server
