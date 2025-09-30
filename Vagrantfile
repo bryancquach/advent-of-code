@@ -33,7 +33,7 @@ Vagrant.configure("2") do |config|
         d.build_args = [
           "--no-cache",
           "--tag",
-          image_name}
+          image_name
         ]
       end
       d.cmd = ["/usr/sbin/sshd", "-D", "-o", "ListenAddress=0.0.0.0"] # spin up SSH server
