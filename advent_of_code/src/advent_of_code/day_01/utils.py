@@ -1,4 +1,5 @@
 from collections import Counter
+import numpy
 import pandas
 
 
@@ -16,7 +17,11 @@ def get_manhattan_dist(
     """
     if series1.size != series2.size:
         raise ValueError("Input series must be of the same length.")
-    return (series1 - series2).abs().sum()
+    if pandas.api.types.is_integer_dtype(series1) is False:
+        raise ValueError("Input series1 must be of integer dtype.")
+    if pandas.api.types.is_integer_dtype(series2) is False:
+        raise ValueError("Input series2 must be of integer dtype.")
+    return numpy.absolute(series1.to_numpy() - series2.to_numpy()).sum()
 
 
 def get_similarity_score(
@@ -37,6 +42,10 @@ def get_similarity_score(
     """
     if series1.size != series2.size:
         raise ValueError("Input series must be of the same length.")
+    if pandas.api.types.is_integer_dtype(series1) is False:
+        raise ValueError("Input series1 must be of integer dtype.")
+    if pandas.api.types.is_integer_dtype(series2) is False:
+        raise ValueError("Input series2 must be of integer dtype.")
     weights = Counter(series2)
     score = sum(item * weights.get(item, 0) for item in series1)
     return score

@@ -1,4 +1,4 @@
-from .metrics import get_manhattan_dist, get_similarity_score
+from .utils import get_manhattan_dist, get_similarity_score
 import pandas
 import typer
 from typing_extensions import Annotated
