@@ -32,6 +32,10 @@ class Muller:
         """
         self.mul += number
 
+    def reset_mul(self) -> None:
+        """Reset the value of 'mul'."""
+        self.mul = 0
+
     def get_mul(self) -> int:
         """Get the current value of 'mul'."""
         return self.mul
@@ -40,9 +44,34 @@ class Muller:
         """Get the current signal as a concatenated string."""
         return "".join(self.signal)
 
-    def get_stage(self) -> MullerState:
+    def get_state(self) -> MullerState:
         """Get the current state."""
         return self.state
+
+    def _accept(self, ch: str, update_state: bool = True) -> None:
+        """Accept a character and append it to the signal."""
+        self.signal.append(ch)
+        if update_state:
+            self.state = MullerState(self.state.value + 1)
+
+    def _reject(self) -> None:
+        """Reject the current signal and reset."""
+        self.signal = []
+        self.state = MullerState.START
+
+    def _process_signal(self) -> None:
+        """Internal method to parse string signal."""
+        self.state = MullerState.PROCESSING
+        signal_str = "".join(self.signal)
+        match = re.match(r"mul\((\d+),(\d+)\)", signal_str)
+        if match:
+            first_num = int(match.group(1))
+            second_num = int(match.group(2))
+            self.update_mul(first_num * second_num)
+        else:
+            raise ValueError(f"Invalid signal format: {signal_str}")
+        self.signal = []
+        self.state = MullerState.START
 
     def process_event(self, event: str) -> None:
         """Process an event from incoming data stream"""
@@ -92,27 +121,3 @@ class Muller:
                 self._reject()
         if len(self.signal) > Muller.MAX_SIGNAL_LENGTH:
             raise ValueError("Signal length exceeded maximum limit.")
-
-    def _process_signal(self) -> None:
-        """Internal method to parse string signal."""
-        self.state = MullerState.PROCESSING
-        signal_str = self.signal.join("")
-        match = re.match(r"mul\((\d+),(\d+)\)", signal_str)
-        if match:
-            first_num = int(match.group(1))
-            second_num = int(match.group(2))
-            self.update_mul(first_num * second_num)
-        else:
-            raise ValueError(f"Invalid signal format: {signal_str}")
-        self.signal = []
-
-    def _accept(self, ch: str, update_state: bool = True) -> None:
-        """Accept a character and append it to the signal."""
-        self.signal.append(ch)
-        if update_state:
-            self.state = MullerState(self.state.value + 1)
-
-    def _reject(self) -> None:
-        """Reject the current signal and reset."""
-        self.signal = []
-        self.state = MullerState.START

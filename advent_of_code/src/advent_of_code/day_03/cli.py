@@ -1,6 +1,6 @@
 import typer
 from typing_extensions import Annotated
-import utils
+from .utils import Muller
 
 app = typer.Typer(help="Day 2: Red-Nosed Reports")
 
@@ -12,7 +12,7 @@ def run_part1(
     ],
 ):
     """Process data as a stream to parse and perform arithmetic operations."""
-    muller = utils.Muller()
+    muller = Muller()
     try:
         with open(data_file, 'r', encoding='utf-8') as f:
             while True:
