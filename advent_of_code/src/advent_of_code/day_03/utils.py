@@ -1,123 +1,163 @@
-from enum import Enum
+from __future__ import annotations
+from abc import ABC, abstractmethod
 import re
 
-class MullerState(Enum):
-    """States for a Muller state machine."""
-    START = 0
-    M = 1
-    MU = 2
-    MUL = 3
-    OPEN = 4
-    FIRST_NUM = 5
-    COMMA = 6
-    SECOND_NUM = 7
-    CLOSE = 8
-    PROCESSING = 9
 
-class Muller:
-    """A state machine class for string parsing and arithmetic on data streams."""
+class MulStateMachine:
+    """A finite state machine for string parsing and arithmetic on data streams.
+
+    Attributes:
+        _state (AbstractState): The current state of the state machine.
+        _mul (int): An accumulated multiplication result from parsing 'mul([int],[int])' signals.
+        signal (str): The current signal being processed.
+        MAX_SIGNAL_LENGTH (int): Maximum allowed length for the signal to prevent overflow.
+
+    """
+
     # Could set this dynamically based on system limits using sys.maxsize
-    MAX_SIGNAL_LENGTH = 20 #including mul(,)
+    MAX_SIGNAL_LENGTH = 20  # including mul(,)
 
-    def __init__(self) -> None:
-        self.mul: int = 0
-        self.signal: list[str] = []
-        self.state: MullerState = MullerState.START
+    def __init__(self, disable_dont: bool = False) -> None:
+        self._mul: int = 0
+        self.signal: str = ""
+        self._state: AbstractState = DoState()
+        self._state.context = self
+        self.disable_dont: bool = disable_dont  # compatibility with part 1 when 'True'
 
-    def update_mul(self, number: int) -> None:
-        """Add a number to the current value of 'mul'.
-        
-        Args:
-            number (int): The number to add.
-        """
-        self.mul += number
+    def set_state(self, state: AbstractState) -> None:
+        self._state = state
+        self._state.context = self
 
-    def reset_mul(self) -> None:
-        """Reset the value of 'mul'."""
-        self.mul = 0
+    @property
+    def mul(self) -> int:
+        return self._mul
 
-    def get_mul(self) -> int:
-        """Get the current value of 'mul'."""
-        return self.mul
-    
-    def get_signal(self) -> str:
-        """Get the current signal as a concatenated string."""
-        return "".join(self.signal)
+    @mul.setter
+    def mul(self, value: int) -> None:
+        self._mul = value
 
-    def get_state(self) -> MullerState:
-        """Get the current state."""
-        return self.state
+    def process_event(self, event: str) -> None:
+        if len(self.signal) > self.MAX_SIGNAL_LENGTH:
+            raise ValueError(f"Signal length exceeded maximum limit of {self.MAX_SIGNAL_LENGTH}.")
+        self._state.process_event(event)
 
-    def _accept(self, ch: str, update_state: bool = True) -> None:
-        """Accept a character and append it to the signal."""
-        self.signal.append(ch)
-        if update_state:
-            self.state = MullerState(self.state.value + 1)
+
+class AbstractState(ABC):
+
+    @property
+    def context(self) -> MulStateMachine:
+        return self._context
+
+    @context.setter
+    def context(self, context: MulStateMachine) -> None:
+        self._context = context
+
+    @abstractmethod
+    def process_event(self, event: str) -> None:
+        pass
 
     def _reject(self) -> None:
-        """Reject the current signal and reset."""
-        self.signal = []
-        self.state = MullerState.START
+        self.context.signal = ""
+
+    def _accept(self, ch: str) -> None:
+        self.context.signal += ch
+
+
+class MulState(AbstractState):
+    """State class for handling 'mul(' prefix and ',' number delimiter."""
+
+    def process_event(self, event: str) -> None:
+        match event:
+            case "u" if self.context.signal == "m":
+                self._accept(event)
+            case "l" if self.context.signal == "mu":
+                self._accept(event)
+            case "(" if self.context.signal == "mul":
+                self._accept(event)
+                self.context.set_state(NumState())
+            # Switch back to NumState after comma
+            case _ if re.match(r"\d", event):
+                if re.match(r"mul\(\d+,$", self.context.signal):
+                    self._accept(event)
+                    self.context.set_state(NumState())
+            case _:
+                self._reject()
+
+    def _reject(self) -> None:
+        self.context.signal = ""
+        self.context.set_state(DoState())
+
+
+class NumState(AbstractState):
+
+    def process_event(self, event: str) -> None:
+        match event:
+            case "," if re.match(r"mul\(\d+$", self.context.signal):
+                self._accept(event)
+                self.context.set_state(MulState())
+            case ")" if re.match(r"mul\(\d+,\d+$", self.context.signal):
+                self._accept(event)
+                self._process_signal()
+            case _ if re.match(r"\d", event):
+                self._accept(event)
+            case _:
+                self._reject()
+
+    def _reject(self) -> None:
+        self.context.signal = ""
+        self.context.set_state(DoState())
 
     def _process_signal(self) -> None:
-        """Internal method to parse string signal."""
-        self.state = MullerState.PROCESSING
-        signal_str = "".join(self.signal)
-        match = re.match(r"mul\((\d+),(\d+)\)", signal_str)
+        match = re.match(r"mul\((\d+),(\d+)\)", self.context.signal)
         if match:
             first_num = int(match.group(1))
             second_num = int(match.group(2))
-            self.update_mul(first_num * second_num)
+            self.context.mul += first_num * second_num
         else:
-            raise ValueError(f"Invalid signal format: {signal_str}")
-        self.signal = []
-        self.state = MullerState.START
+            raise ValueError(f"Invalid signal format: {self.context.signal}")
+        self.context.signal = ""
+        self.context.set_state(DoState())
 
+
+class DoState(AbstractState):
     def process_event(self, event: str) -> None:
-        """Process an event from incoming data stream"""
-        match self.state:
-            case MullerState.START:
-                if event == "m":
-                    self._accept(event)
-                else:
-                    self._reject()
-            case MullerState.M:
-                if event == "u":
-                    self._accept(event)
-                else:
-                    self._reject()
-            case MullerState.MU:
-                if event == "l":
-                    self._accept(event)
-                else:
-                    self._reject()
-            case MullerState.MUL:
-                if event == "(":
-                    self._accept(event)
-                else:
-                    self._reject()
-            case MullerState.OPEN:
-                if re.match(r"\d", event):
-                    self._accept(event)
-            case MullerState.FIRST_NUM:
-                if re.match(r"\d", event):
-                    self._accept(event, update_state=False)
-                elif event == ",":
-                    self._accept(event)
-                else:
-                    self._reject()
-            case MullerState.COMMA:
-                if re.match(r"\d", event):
-                    self._accept(event)
-            case MullerState.SECOND_NUM:
-                if re.match(r"\d", event):
-                    self._accept(event, update_state=False)
-                elif event == ")":
-                    self._accept(event)
-                    self._process_signal()
-                else:
-                    self._reject()
+        match event:
+            case "m" if self.context.signal == "":
+                self._accept(event)
+                self.context.set_state(MulState())
+            case "d" if self.context.signal == "" and not self.context.disable_dont:
+                self._accept(event)
+            # Can only enter remaining cases if 'disable_dont' is False
+            case "o" if self.context.signal == "d":
+                self._accept(event)
+            case "n" if self.context.signal == "do":
+                self._accept(event)
+            case "'" if self.context.signal == "don":
+                self._accept(event)
+            case "t" if self.context.signal == "don'":
+                self._accept(event)
+            case "(" if self.context.signal == "don't":
+                self._accept(event)
+            case ")" if self.context.signal == "don't(":
+                self._accept(event)
+                self.context.set_state(DontState())
             case _:
                 self._reject()
-        if len(self.signal) > Muller.MAX_SIGNAL_LENGTH:
-            raise ValueError("Signal length exceeded maximum limit.")
+
+
+class DontState(AbstractState):
+
+    def process_event(self, event: str) -> None:
+        # Only way out of DontState is to find "do()" signal
+        match event:
+            case "d" if self.context.signal == "":
+                self._accept(event)
+            case "o" if self.context.signal == "d":
+                self._accept(event)
+            case "(" if self.context.signal == "do":
+                self._accept(event)
+            case ")" if self.context.signal == "do(":
+                self._accept(event)
+                self.context.set_state(DoState())
+            case _:
+                self._reject()

@@ -1,9 +1,5 @@
-from .utils import (
-    Muller,
-    MullerState
-)
+from .utils import MulStateMachine
 
 __all__ = [
-    "Muller",
-    "MullerState"
+    "MulStateMachine",
 ]

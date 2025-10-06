@@ -1,8 +1,8 @@
 import typer
 from typing_extensions import Annotated
-from .utils import Muller
+from .utils import MulStateMachine
 
-app = typer.Typer(help="Day 2: Red-Nosed Reports")
+app = typer.Typer(help="Day 3: Mull It Over")
 
 
 @app.command()
@@ -12,25 +12,22 @@ def run_part1(
     ],
 ):
     """Process data as a stream to parse and perform arithmetic operations."""
-    muller = Muller()
+    state_machine = MulStateMachine(disable_dont=True)
     try:
-        with open(data_file, 'r', encoding='utf-8') as f:
+        with open(data_file, "r", encoding="utf-8") as f:
             while True:
                 char = f.read(1)
                 if not char:
                     break
-                muller.process_event(char)
+                state_machine.process_event(char)
     except FileNotFoundError:
         print(f"Error: The file '{data_file}' was not found.")
-    print(f"Final value: {muller.get_mul()}")
+    print(f"Final value: {state_machine.mul}")
 
 
 @app.command()
 def run_part2(
-    data_file: Annotated[
-        str, typer.Argument(..., help="Path to a TSV file.")
-    ],
+    data_file: Annotated[str, typer.Argument(..., help="Path to a TSV file.")],
 ):
-    """Placeholder for Part 2 functionality.
-    """
+    """Placeholder for Part 2 functionality."""
     pass
