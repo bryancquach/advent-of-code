@@ -75,11 +75,17 @@ class MulState(AbstractState):
             case "(" if self.context.signal == "mul":
                 self._accept(event)
                 self.context.set_state(NumState())
+            case "d" if not self.context.disable_dont:
+                self.context.signal = ""
+                self._accept(event)
+                self.context.set_state(DoState())
             # Switch back to NumState after comma
             case _ if re.match(r"\d", event):
                 if re.match(r"mul\(\d+,$", self.context.signal):
                     self._accept(event)
                     self.context.set_state(NumState())
+                else:
+                    self._reject()
             case _:
                 self._reject()
 
@@ -98,6 +104,10 @@ class NumState(AbstractState):
             case ")" if re.match(r"mul\(\d+,\d+$", self.context.signal):
                 self._accept(event)
                 self._process_signal()
+            case "d" if not self.context.disable_dont:
+                self.context.signal = ""
+                self._accept(event)
+                self.context.set_state(DoState())
             case _ if re.match(r"\d", event):
                 self._accept(event)
             case _:
@@ -120,6 +130,7 @@ class NumState(AbstractState):
 
 
 class DoState(AbstractState):
+
     def process_event(self, event: str) -> None:
         match event:
             case "m" if self.context.signal == "":
@@ -139,7 +150,7 @@ class DoState(AbstractState):
             case "(" if self.context.signal == "don't":
                 self._accept(event)
             case ")" if self.context.signal == "don't(":
-                self._accept(event)
+                self.context.signal = ""
                 self.context.set_state(DontState())
             case _:
                 self._reject()
@@ -157,7 +168,7 @@ class DontState(AbstractState):
             case "(" if self.context.signal == "do":
                 self._accept(event)
             case ")" if self.context.signal == "do(":
-                self._accept(event)
+                self.context.signal = ""
                 self.context.set_state(DoState())
             case _:
                 self._reject()
