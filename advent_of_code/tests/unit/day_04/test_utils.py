@@ -49,6 +49,7 @@ def test_char_search(puzzle_sets):
     assert len(row_indices) == 0
     assert len(col_indices) == 0
 
+
 def test_get_north(puzzle_sets):
     puzzle = puzzle_sets["abc_puzzle"]
     assert puzzle._get_north(4, 0, 5) == "MJGDA"
@@ -112,6 +113,7 @@ def test_get_southwest(puzzle_sets):
     with pytest.raises(IndexError):
         puzzle._get_southwest(10, -1, 2)
 
+
 def test_get_word_count(puzzle_sets):
     puzzle = puzzle_sets["example_puzzle"]
     row_indices, col_indices = puzzle.char_search("X")
@@ -119,3 +121,9 @@ def test_get_word_count(puzzle_sets):
     for row, col in zip(row_indices, col_indices):
         found_count += puzzle.get_word_count("XMAS", row, col)
     assert found_count == 18, f"The word 'XMAS' was found {found_count}/18 times."
+
+
+def test_get_x_mas_count(puzzle_sets):
+    puzzle = puzzle_sets["example_puzzle"]
+    found_count = puzzle.get_x_mas_count()
+    assert found_count == 9, f"X-shaped 'MAS' was found {found_count}/9 times."
