@@ -1,6 +1,7 @@
 import numpy
 import pandas
 from numpy.typing import NDArray
+from pathlib import Path
 
 class Puzzle:
     """A word search puzzle data object.
@@ -8,8 +9,23 @@ class Puzzle:
     Holds the word search character matrix and provides methods for
     interacting with the puzzle.
     """
-    def __init__(self, puzzle: pandas.DataFrame):
-        self.puzzle = puzzle
+    def __init__(self, puzzle_file: Path):
+        self.puzzle: pandas.DataFrame = self._load_puzzle(puzzle_file)
+
+    def _load_puzzle(self, puzzle_file: Path) -> pandas.DataFrame:
+        """Load the puzzle from a file into a DataFrame.
+        
+        Args:
+            puzzle_file (Path): The path to the puzzle file.
+
+        Returns:
+            pandas.DataFrame: The loaded puzzle as a DataFrame of characters.
+        """
+        with open(puzzle_file, "r") as f:
+            lines = f.readlines()
+        data = [list(line.strip()) for line in lines]
+        return pandas.DataFrame(data, dtype=str)
+    
 
     def char_search(self, char: str) -> tuple[NDArray[numpy.int_], NDArray[numpy.int_]]:
         """Find all instances of a character in the puzzle.
@@ -25,8 +41,11 @@ class Puzzle:
         rows, cols = numpy.where(self.puzzle == char)
         return rows, cols
 
+
     def _get_north(self, row_index: int, col_index: int, length: int) -> str:
         """Get the puzzle values moving northward from the start position.
+
+        Only returns the values if the entire word fits within the puzzle boundaries.
 
         Args:
             row_index (int): The starting row index.
@@ -36,17 +55,21 @@ class Puzzle:
         Returns:
             The puzzle values as a string.
         """
-        if length <= 0:
-            return ""
-        if row_index - length < 0 or row_index >= self.puzzle.shape[0]:
-            raise IndexError("Row index and length combined are outside the puzzle boundaries.")
+        if row_index < 0 or row_index >= self.puzzle.shape[0]:
+            raise IndexError("Row index is outside the puzzle boundaries.")
         if col_index < 0 or col_index >= self.puzzle.shape[1]:
             raise IndexError("Column index is outside the puzzle boundaries.")
-        return self.puzzle.iloc[row_index - length + 1:row_index + 1, col_index].to_string(index=False, header=False)
+        if length <= 0:
+            return ""
+        if row_index - length + 1 < 0:
+            return ""
+        return self.puzzle.iloc[row_index - length + 1:row_index + 1, col_index][::-1].str.cat(sep='')
         
     def _get_south(self, row_index: int, col_index: int, length: int) -> str:
         """Get the puzzle values moving southward from the start position.
 
+        Only returns the values if the entire word fits within the puzzle boundaries.
+
         Args:
             row_index (int): The starting row index.
             col_index (int): The starting col_index.
@@ -55,17 +78,21 @@ class Puzzle:
         Returns:
             The puzzle values as a string.
         """
-        if length <= 0:
-            return ""
-        if row_index + length > self.puzzle.shape[0] or row_index < 0:
-            raise IndexError("Row index and length combined are outside the puzzle boundaries.")
+        if row_index < 0 or row_index >= self.puzzle.shape[0]:
+            raise IndexError("Row index is outside the puzzle boundaries.")
         if col_index < 0 or col_index >= self.puzzle.shape[1]:
             raise IndexError("Column index is outside the puzzle boundaries.")
-        return self.puzzle.iloc[row_index:row_index + length, col_index].to_string(index=False, header=False)
+        if length <= 0:
+            return ""
+        if row_index + length > self.puzzle.shape[0]:
+            return ""
+        return self.puzzle.iloc[row_index:row_index + length, col_index].str.cat(sep='')
     
     def _get_east(self, row_index: int, col_index: int, length: int) -> str:
         """Get the puzzle values moving eastward from the start position.
 
+        Only returns the values if the entire word fits within the puzzle boundaries.
+
         Args:
             row_index (int): The starting row index.
             col_index (int): The starting col_index.
@@ -74,17 +101,21 @@ class Puzzle:
         Returns:
             The puzzle values as a string.
         """
-        if length <= 0:
-            return ""
         if row_index < 0 or row_index >= self.puzzle.shape[0]:
             raise IndexError("Row index is outside the puzzle boundaries.")
-        if col_index + length > self.puzzle.shape[1] or col_index < 0:
-            raise IndexError("Column index and length combined are outside the puzzle boundaries.")
-        return self.puzzle.iloc[row_index, col_index:col_index + length].to_string(index=False, header=False)
+        if col_index < 0 or col_index >= self.puzzle.shape[1]:
+            raise IndexError("Column index is outside the puzzle boundaries.")
+        if length <= 0:
+            return ""
+        if col_index + length > self.puzzle.shape[1]:
+            return ""
+        return self.puzzle.iloc[row_index, col_index:col_index + length].str.cat(sep='')
     
     def _get_west(self, row_index: int, col_index: int, length: int) -> str:
         """Get the puzzle values moving westward from the start position.
 
+        Only returns the values if the entire word fits within the puzzle boundaries.
+
         Args:
             row_index (int): The starting row index.
             col_index (int): The starting col_index.
@@ -93,39 +124,48 @@ class Puzzle:
         Returns:
             The puzzle values as a string.
         """
-        if length <= 0:
-            return ""
         if row_index < 0 or row_index >= self.puzzle.shape[0]:
             raise IndexError("Row index is outside the puzzle boundaries.")
-        if col_index - length < 0 or col_index >= self.puzzle.shape[1]:
-            raise IndexError("Column index and length combined are outside the puzzle boundaries.")
-        return self.puzzle.iloc[row_index, col_index - length + 1:col_index + 1].to_string(index=False, header=False)
+        if col_index < 0 or col_index >= self.puzzle.shape[1]:
+            raise IndexError("Column index is outside the puzzle boundaries.")
+        if length <= 0:
+            return ""
+        if col_index - length + 1 < 0:
+            return ""
+        return self.puzzle.iloc[row_index, col_index - length + 1:col_index + 1][::-1].str.cat(sep='')
     
 
     def _get_northeast(self, row_index: int, col_index: int, length: int) -> str:
         """Get the puzzle values moving northeastward from the start position.
 
+        Only returns the values if the entire word fits within the puzzle boundaries.
+        
         Args:
             row_index (int): The starting row index.
             col_index (int): The starting col_index.
             length (int): The number of values to retrieve.
-
+        
         Returns:
             The puzzle values as a string.
         """
+        if row_index < 0 or row_index >= self.puzzle.shape[0]:
+            raise IndexError("Row index outside the puzzle boundaries.")
+        if col_index < 0 or col_index >= self.puzzle.shape[1]:
+            raise IndexError("Column index outside the puzzle boundaries.")
         if length <= 0:
             return ""
-        if row_index - length < 0 or row_index >= self.puzzle.shape[0]:
-            raise IndexError("Row index and length combined are outside the puzzle boundaries.")
-        if col_index + length > self.puzzle.shape[1] or col_index < 0:
-            raise IndexError("Column index and length combined are outside the puzzle boundaries.")
+        if row_index - length + 1 < 0 or col_index + length > self.puzzle.shape[1]:
+            return ""
         row_indices = [row_index - i for i in range(length)]
         col_indices = [col_index + i for i in range(length)]
-        return self.puzzle.iloc[row_indices, col_indices].to_string(index=False, header=False)
+        char_list = [str(self.puzzle.iloc[row, col]) for row, col in zip(row_indices, col_indices)]
+        return "".join(char_list)
 
     def _get_northwest(self, row_index: int, col_index: int, length: int) -> str:
         """Get the puzzle values moving northwestward from the start position.
 
+        Only returns the values if the entire word fits within the puzzle boundaries.
+        
         Args:
             row_index (int): The starting row index.
             col_index (int): The starting col_index.
@@ -134,40 +174,52 @@ class Puzzle:
         Returns:
             The puzzle values as a string.
         """
+        if row_index < 0 or row_index >= self.puzzle.shape[0]:
+            raise IndexError("Row index outside the puzzle boundaries.")
+        if col_index < 0 or col_index >= self.puzzle.shape[1]:
+            raise IndexError("Column index outside the puzzle boundaries.")
         if length <= 0:
             return ""
-        if row_index - length < 0 or row_index >= self.puzzle.shape[0]:
-            raise IndexError("Row index and length combined are outside the puzzle boundaries.")
-        if col_index - length < 0 or col_index >= self.puzzle.shape[1]:
-            raise IndexError("Column index and length combined are outside the puzzle boundaries.")
+        if row_index - length + 1 < 0 or col_index - length + 1 < 0:
+            return ""
         row_indices = [row_index - i for i in range(length)]
         col_indices = [col_index - i for i in range(length)]
-        return self.puzzle.iloc[row_indices, col_indices].to_string(index=False, header=False)
-    
+        char_list = [str(self.puzzle.iloc[row, col]) for row, col in zip(row_indices, col_indices)]
+        return "".join(char_list)
+
+
     def _get_southeast(self, row_index: int, col_index: int, length: int) -> str:
         """Get the puzzle values moving southeastward from the start position.
 
+        Only returns the values if the entire word fits within the puzzle boundaries.
+        
         Args:
             row_index (int): The starting row index.
             col_index (int): The starting col_index.
             length (int): The number of values to retrieve.
-
+        
         Returns:
             The puzzle values as a string.
         """
+        if row_index < 0 or row_index >= self.puzzle.shape[0]:
+            raise IndexError("Row index outside the puzzle boundaries.")
+        if col_index < 0 or col_index >= self.puzzle.shape[1]:
+            raise IndexError("Column index outside the puzzle boundaries.")
         if length <= 0:
             return ""
-        if row_index + length > self.puzzle.shape[0] or row_index < 0:
-            raise IndexError("Row index and length combined are outside the puzzle boundaries.")
-        if col_index + length > self.puzzle.shape[1] or col_index < 0:
-            raise IndexError("Column index and length combined are outside the puzzle boundaries.")
+        if row_index + length > self.puzzle.shape[0] or col_index + length > self.puzzle.shape[1]:
+            return ""
         row_indices = [row_index + i for i in range(length)]
         col_indices = [col_index + i for i in range(length)]
-        return self.puzzle.iloc[row_indices, col_indices].to_string(index=False, header=False)
-    
+        char_list = [str(self.puzzle.iloc[row, col]) for row, col in zip(row_indices, col_indices)]
+        return "".join(char_list)
+
+
     def _get_southwest(self, row_index: int, col_index: int, length: int) -> str:
         """Get the puzzle values moving southwestward from the start position.
 
+        Only returns the values if the entire word fits within the puzzle boundaries.
+        
         Args:
             row_index (int): The starting row index.
             col_index (int): The starting col_index.
@@ -178,16 +230,22 @@ class Puzzle:
         """
         if length <= 0:
             return ""
-        if row_index + length > self.puzzle.shape[0] or row_index < 0:
-            raise IndexError("Row index and length combined are outside the puzzle boundaries.")
-        if col_index - length < 0 or col_index >= self.puzzle.shape[1]:
-            raise IndexError("Column index and length combined are outside the puzzle boundaries.")
+        if row_index < 0 or row_index >= self.puzzle.shape[0]:
+            raise IndexError("Row index outside the puzzle boundaries.")
+        if col_index < 0 or col_index >= self.puzzle.shape[1]:
+            raise IndexError("Column index outside the puzzle boundaries.")
+        if length <= 0:
+            return "" 
+        if row_index + length > self.puzzle.shape[0] or col_index - length + 1 < 0:
+            return ""
         row_indices = [row_index + i for i in range(length)]
         col_indices = [col_index - i for i in range(length)]
-        return self.puzzle.iloc[row_indices, col_indices].to_string(index=False, header=False)
+        char_list = [str(self.puzzle.iloc[row, col]) for row, col in zip(row_indices, col_indices)]
+        return "".join(char_list)
 
-    def check_word(self, word: str, row_index: int, col_index: int) -> bool:
-        """Check if a word exists in the puzzle in any direction from the specified position.
+
+    def get_word_count(self, word: str, row_index: int, col_index: int) -> int:
+        """Tally how often a word exists in the puzzle in any direction from the specified position.
 
         Row and column positions are zero-indexed.
 
@@ -197,11 +255,12 @@ class Puzzle:
             col_index (int): The starting col_index.
 
         Returns:
-            bool: True if the word is found, False otherwise.
+            int: The count of occurrences of the word.
         """
         # Check all 8 directions
+        count = 0
         for direction in [self._get_north, self._get_northeast, self._get_east, self._get_southeast,
                           self._get_south, self._get_southwest, self._get_west, self._get_northwest]:
             if word == direction(row_index, col_index, len(word)):
-                return True
-        return False
+                count += 1
+        return count
